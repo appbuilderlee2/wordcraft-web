@@ -271,6 +271,12 @@ pub fn system_lang() -> Lang {
     if cfg!(test) {
         return Lang::EN;
     }
+    // The hosted WordCraft Web edition defaults to Traditional Chinese; users can still
+    // select a different interface language in File > Options.
+    #[cfg(target_arch = "wasm32")]
+    if let Some(lang) = Lang::from_code("zh-hant") {
+        return lang;
+    }
     static SYSTEM: OnceLock<Lang> = OnceLock::new();
     *SYSTEM.get_or_init(detect_system_lang)
 }
