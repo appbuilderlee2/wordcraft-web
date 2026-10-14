@@ -1,0 +1,22 @@
+name: Check upstream WordCraft
+on:
+  schedule:
+    - cron: '23 7 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Report upstream changes (no automatic overwrites)
+        run: |
+          git remote add upstream https://github.com/storytold/wordcraft.git
+          git fetch upstream main
+          echo "Commits available upstream:"
+          git log --oneline HEAD..upstream/main | head -30 || true
+          echo "Ahead/behind:"
+          git rev-list --left-right --count HEAD...upstream/main
