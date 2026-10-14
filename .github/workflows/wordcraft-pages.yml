@@ -25,10 +25,13 @@ jobs:
       - name: Build WASM app
         working-directory: apps/wordcraft-web
         run: trunk build --release
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Assemble offline shell and iOS icon
         run: |
-          python3 -m pip install --user pillow
-          python3 scripts/prepare_web.py
+          python -m pip install pillow
+          python scripts/prepare_web.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
