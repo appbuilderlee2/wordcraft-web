@@ -22,8 +22,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Install Trunk
         run: cargo install trunk --locked
+      - name: Get open-source CJK font assets
+        run: git clone --depth 1 https://github.com/storytold/craft-fonts.git /tmp/wordcraft-craft-fonts
       - name: Build WASM app
         working-directory: apps/wordcraft-web
+        env:
+          CRAFT_FONTS_DIR: /tmp/wordcraft-craft-fonts
+          CRAFT_FONTS_REQUIRED: "1"
         run: trunk build --release
       - uses: actions/setup-python@v5
         with:
