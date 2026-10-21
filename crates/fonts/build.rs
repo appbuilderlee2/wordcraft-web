@@ -18,8 +18,7 @@ fn main() {
                 src.push_str(&entries);
                 // Each CJK interface language needs its own face: without the Chinese one, Chinese
                 // menus fall back to the Japanese face and show boxes for simplified hanzi (#241).
-                let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").is_ok_and(|a| a == "wasm32");
-                if std::env::var_os("CRAFT_FONTS_REQUIRED").is_some() && !wasm {
+                if std::env::var_os("CRAFT_FONTS_REQUIRED").is_some() {
                     for s in REQUIRED_SCRIPTS.iter().filter(|s| !covered.iter().any(|c| c == *s)) {
                         println!("cargo::error=CRAFT_FONTS_DIR={}: no {s} font in fonts/manifest.txt (craft-fonts too old?)", dir.display());
                     }
@@ -40,7 +39,7 @@ fn main() {
 
 /// Scripts a release build (`CRAFT_FONTS_REQUIRED`, native) must embed a font for: the CJK
 /// interface languages' (Japanese, Simplified Chinese).
-const REQUIRED_SCRIPTS: &[&str] = &["Jpan", "Hans"];
+const REQUIRED_SCRIPTS: &[&str] = &["Jpan", "Hans", "Hant"];
 
 /// One `CraftFont { .. }` initialiser per manifest line, and the scripts the embedded fonts cover.
 fn craft_fonts(dir: &std::path::Path) -> Result<(String, Vec<String>), String> {
@@ -55,7 +54,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<(String, Vec<String>), String> {
         let [family, style, file, scripts, ..] = f.as_slice() else {
             return Err(format!("malformed manifest line: {line}"));
         };
-        if wasm && !((*family == "BIZ UDPGothic" || *family == "Noto Sans CJK SC") && *style == "Regular") {
+        if wasm && !((*family == "BIZ UDPGothic" || *family == "Noto Sans CJK SC" || *family == "Noto Sans CJK TC") && *style == "Regular") {
             continue;
         }
         let path = dir.join(file).canonicalize().map_err(|e| format!("{file}: {e}"))?;
