@@ -61,7 +61,7 @@ pub fn japanese_ui_fonts(bold: bool) -> Vec<&'static CraftFont> {
 /// The craft-fonts faces for Simplified Chinese (`"Hans"`), in manifest order. Empty without
 /// craft-fonts.
 pub fn chinese_fonts() -> impl Iterator<Item = &'static CraftFont> {
-    CRAFT_FONTS.iter().filter(|f| f.scripts.contains(&"Hans"))
+    CRAFT_FONTS.iter().filter(|f| f.scripts.contains(&"Hans") || f.scripts.contains(&"Hant"))
 }
 
 /// The CJK interface faces, Regular styles only (the UI fakes no bold): the Japanese UI face and
@@ -71,7 +71,7 @@ pub fn chinese_fonts() -> impl Iterator<Item = &'static CraftFont> {
 pub fn ui_cjk_fonts(prefer_hans: bool) -> Vec<&'static CraftFont> {
     let regular = |f: &&CraftFont| f.style == "Regular";
     let ja = japanese_ui_fonts(false).into_iter().filter(regular).take(1);
-    let zh = chinese_fonts().filter(regular).take(1);
+    let zh = chinese_fonts().filter(regular).take(2);
     if prefer_hans { zh.chain(ja).collect() } else { ja.chain(zh).collect() }
 }
 
