@@ -24,6 +24,13 @@ jobs:
         run: cargo install trunk --locked
       - name: Get open-source CJK font assets
         run: git clone --depth 1 https://github.com/storytold/craft-fonts.git /tmp/wordcraft-craft-fonts
+      - name: Add Traditional Chinese font to web build
+        run: |
+          mkdir -p /tmp/wordcraft-craft-fonts/fonts/noto-sans-cjk-tc
+          curl --fail --location --retry 3 --silent --show-error \
+            https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf \
+            -o /tmp/wordcraft-craft-fonts/fonts/noto-sans-cjk-tc/NotoSansCJKtc-Regular.otf
+          printf "%s\\n" "Noto Sans CJK TC | Regular | fonts/noto-sans-cjk-tc/NotoSansCJKtc-Regular.otf | Hant,Latn | OFL-1.1" >> /tmp/wordcraft-craft-fonts/fonts/manifest.txt
       - name: Build WASM app
         working-directory: apps/wordcraft-web
         env:
