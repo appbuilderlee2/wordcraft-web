@@ -147,6 +147,9 @@ impl eframe::App for WebShell {
             self.last_recovery_at = now;
             recovery::save(&self.app.session.doc);
         }
+        if self.app.session.dirty {
+            ctx.request_repaint_after(std::time::Duration::from_secs(30));
+        }
     }
 
     fn raw_input_hook(&mut self, _ctx: &egui::Context, raw: &mut egui::RawInput) {
