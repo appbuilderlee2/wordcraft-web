@@ -12,6 +12,7 @@ const DOC_EXTS: &[&str] = &["docx", "docm", "dotx", "dotm", "doc", "dot", "odt",
 const IMAGE_EXTS: &[&str] = &["png", "jpg", "jpeg", "gif", "webp", "bmp", "wmf", "emf"];
 const RECIPIENT_EXTS: &[&str] = &["csv", "tsv", "txt", "xlsx", "xlsm", "ods"];
 mod font_store;
+mod recovery;
 const CANVAS_ID: &str = "wordcraft_canvas";
 const LOADING_ID: &str = "wordcraft_loading";
 
@@ -48,6 +49,7 @@ pub fn start() {
                     // Fonts the user added on an earlier visit (#582); the app notices them arrive.
                     font_store::load_all(cc.egui_ctx.clone());
                     let inbox: Inbox = Inbox::default();
+                    recovery::offer_restore(inbox.clone(), cc.egui_ctx.clone());
                     if let Err(e) = listen_for_pasted_pictures(inbox.clone(), cc.egui_ctx.clone()) {
                         log::error!("pasting pictures is unavailable: {e}");
                     }
@@ -64,7 +66,7 @@ pub fn start() {
                     if !sample {
                         app.start_screen();
                     }
-                    Ok(Box::new(WebShell { app, inbox, saves }))
+                    Ok(Box::new(WebShell { app, inbox, saves, last_recovery_at: 0.0 }))
                 }),
             )
             .await;
@@ -87,6 +89,7 @@ struct WebShell {
     app: WordApp,
     inbox: Inbox,
     saves: Rc<PickerSaves>,
+    last_recovery_at: f64,
 }
 
 /// Saves the browser's save picker finishes after `download` has returned (#728). The app marks
@@ -139,6 +142,11 @@ impl eframe::App for WebShell {
         }
         self.settle_picker_saves();
         self.app.logic(ctx);
+        let now = ctx.input(|input| input.time);
+        if self.app.session.dirty && now - self.last_recovery_at >= 30.0 {
+            self.last_recovery_at = now;
+            recovery::save(&self.app.session.doc);
+        }
     }
 
     fn raw_input_hook(&mut self, _ctx: &egui::Context, raw: &mut egui::RawInput) {
