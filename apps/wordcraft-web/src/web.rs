@@ -66,7 +66,7 @@ pub fn start() {
                     if !sample {
                         app.start_screen();
                     }
-                    Ok(Box::new(WebShell { app, inbox, saves, last_recovery_at: 0.0 }))
+                    Ok(Box::new(WebShell { app, inbox, saves, last_recovery_at: 0.0, was_dirty: false }))
                 }),
             )
             .await;
@@ -90,6 +90,7 @@ struct WebShell {
     inbox: Inbox,
     saves: Rc<PickerSaves>,
     last_recovery_at: f64,
+    was_dirty: bool,
 }
 
 /// Saves the browser's save picker finishes after `download` has returned (#728). The app marks
@@ -142,6 +143,10 @@ impl eframe::App for WebShell {
         }
         self.settle_picker_saves();
         self.app.logic(ctx);
+        if self.was_dirty && !self.app.session.dirty {
+            recovery::clear();
+        }
+        self.was_dirty = self.app.session.dirty;
         let now = ctx.input(|input| input.time);
         if self.app.session.dirty && now - self.last_recovery_at >= 30.0 {
             self.last_recovery_at = now;
