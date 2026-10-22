@@ -60,6 +60,20 @@ async fn read() -> Result<Option<Vec<u8>>, String> {
     Ok(Some(array.to_vec()))
 }
 
+async fn delete() -> Result<(), String> {
+    let database = db().await?;
+    let store = database.transaction_with_str_and_mode(STORE, IdbTransactionMode::Readwrite).map_err(err)?.object_store(STORE).map_err(err)?;
+    let req = store.delete(&JsValue::from_str(KEY)).map_err(err)?;
+    request(&req).await.map(|_| ())
+}
+
+/// Discard a stale recovery copy once the document has been saved successfully.
+pub fn clear() {
+    wasm_bindgen_futures::spawn_local(async move {
+        if let Err(e) = delete().await { log::warn!("Could not clear recovery snapshot: {e}"); }
+    });
+}
+
 pub fn save(doc: &wordcraft_doc::Document) {
     let bytes = match wordcraft_engine::io::save_bytes("recovery.json", doc) {
         Ok(bytes) => bytes,
